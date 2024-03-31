@@ -1,0 +1,123 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}UX SOS{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Add any common CSS styles or meta tags here -->
+    <script src="http://127.0.0.1:8000/static/trackingScript.js"></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">UX SOS</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/about/">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/contact/">Contact</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/analytics/">Analytics</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/register/">Register</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/login/">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/profile/">Profile</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Content block that child templates will override -->
+    <div class="content container mt-4">
+        {% block content %}
+        {% endblock %}
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer bg-light mt-auto py-3">
+        <div class="container text-center">
+            <span class="text-muted">© 2024 UX SOS | Alberings</span>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS (optional, for Bootstrap features that require JavaScript) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // Function to get the CSRF token from the cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Track clicks
+        document.addEventListener('click', function(event) {
+            const csrftoken = getCookie('csrftoken'); // Get CSRF token
+            fetch('/save_click/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken // Include CSRF token in headers
+                },
+                body: JSON.stringify({ tagName: event.target.tagName }),
+            });
+        });
+
+        // Track scrolls
+        window.addEventListener('scroll', function() {
+            const csrftoken = getCookie('csrftoken'); // Get CSRF token
+            fetch('/save_scroll/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken // Include CSRF token in headers
+                },
+                body: JSON.stringify({ position: window.scrollY }),
+            });
+        });
+
+        // Track time spent on the page
+        var startTime = Date.now();
+        window.addEventListener('beforeunload', function() {
+            var timeSpent = Math.round((Date.now() - startTime) / 1000); // Calculate time spent
+            const csrftoken = getCookie('csrftoken'); // Get CSRF token
+            fetch('/save_time_spent/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken // Include CSRF token in headers
+                },
+                body: JSON.stringify({ timeSpent: timeSpent }),
+            });
+        });
+    </script>
+</body>
+</html>

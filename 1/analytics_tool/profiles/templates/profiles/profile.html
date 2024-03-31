@@ -1,0 +1,13 @@
+<!-- profiles/templates/profiles/profile.html -->
+{% extends 'base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h2>User Profile</h2>
+        <p>Welcome, {{ user.username }}!</p>
+        <p>Email: {{ user.email }}</p>
+        <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+    </div>
+{% endblock %}
