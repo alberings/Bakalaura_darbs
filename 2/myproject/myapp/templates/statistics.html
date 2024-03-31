@@ -1,0 +1,93 @@
+<!-- myapp/templates/statistics.html -->
+{% extends "base.html" %}
+
+{% block head %}
+  <!-- Include D3.js -->
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+{% endblock head %}
+
+{% block content %}
+  <h1>Event Statistics</h1>
+
+  <div id="chart"></div>
+
+  <div>
+    <h2>All Events</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Path</th>
+          <th>Timestamp</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for event in events %}
+          <tr>
+            <td>{{ event.type }}</td>
+            <td>{{ event.path }}</td>
+            <td>{{ event.timestamp }}</td>
+            <td>{{ event.details }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4">No events found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+  // Parse the JSON string into a JavaScript object
+  const data = JSON.parse('{{ events|safe }}');
+      
+      // Process data to count events of each type
+      const eventCounts = data.reduce((acc, event) => {
+  acc[event.type] = (acc[event.type] || 0) + 1;
+  return acc;
+}, {});
+
+      // Set up SVG using D3
+      const width = 600, height = 400, margin = { top: 20, right: 20, bottom: 30, left: 40 };
+      const svg = d3.select('#chart').append('svg')
+        .attr('width', width)
+        .attr('height', height);
+      
+      // Set up scales
+      const x = d3.scaleBand()
+  .range([margin.left, width - margin.right])
+  .padding(0.1)
+  .domain(Object.keys(eventCounts)); // This should be an array of event type strings
+
+      
+      const y = d3.scaleLinear()
+        .range([height - margin.bottom, margin.top])
+        .domain([0, d3.max(Object.values(eventCounts))]);
+      
+      // Create bars
+      svg.selectAll('.bar')
+        .data(Object.entries(eventCounts))
+        .enter().append('rect')
+        .attr('class', 'bar')
+        .attr('x', d => x(d[0]))
+        .attr('y', d => y(d[1]))
+        .attr('width', x.bandwidth())
+        .attr('height', d => y(0) - y(d[1]))
+        .attr('fill', 'steelblue');
+      
+      // Add X axis
+      svg.append('g')
+        .attr('transform', `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x));
+
+      // Add Y axis
+      svg.append('g')
+        .attr('transform', `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y));
+    });
+  </script>
+
+{% endblock %}
